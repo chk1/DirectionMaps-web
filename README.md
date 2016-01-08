@@ -2,11 +2,9 @@
 
 To run this, clone these three projects and move them into a file structure like this:
 
-```
 [/home/c/code/DirectionMaps-Rendering](https://github.com/chk1/DirectionMaps-Rendering)
 [/home/c/code/dirmaps-web](https://github.com/chk1/dirmaps-web)
 [/home/c/code/DirectionMaps-Backend](https://github.com/mrunde/DirectionMaps-Backend)
-```
 
 Then run `node index.js` in the dirmaps-web folder.
 
