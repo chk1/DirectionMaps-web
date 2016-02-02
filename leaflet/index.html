@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.css" />
+    <style type="text/css">
+      body, html {
+        padding: 0;
+        margin: 0;
+      }
+      #map {
+        position: absolute;
+        width: 100%;
+        top: 0;
+        bottom: 0;
+      }
+      .info {
+        padding: 10px 14px;
+        font: 16px/18px Arial, Helvetica, sans-serif;
+        background: white;
+        background: rgb(255,255,255);
+        box-shadow: 0 0 15px rgba(0,0,0,0.2);
+        border-radius: 5px;
+        max-width: 350px;
+      }
+      .info button {
+        font: 16px/18px Arial, Helvetica, sans-serif;
+      }
+      .info img {
+        width: 350px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="map"></div>
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.js"></script>
+    <script src="//code.jquery.com/jquery-1.12.0.min.js"></script>
+    <script type="text/javascript">
+      var map = L.map('map', {
+        maxBounds: [[51.913249830528244,7.460231781005859],[52.01130258958459,7.7898216247558585]],
+        minZoom: 13
+      }).setView([51.9625, 7.6251], 13);
+
+      L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(map);
+
+      var marker = new L.marker([51.9625, 7.6251], {
+        draggable: true
+      }).addTo(map);
+
+      // allow the marker to be dragged around and update its coordinates
+      map.on('click dragend', function(evt){
+        marker.setLatLng(evt.latlng);
+      })
+
+      // info window with buttons that start the rendering process
+      var info = L.control();
+      info.onAdd = function (map) {
+          // info text
+          this._div = L.DomUtil.create('div', 'info');
+          this._div.innerHTML = '<h1>Direction Maps</h1><h2>Web version</h2>Move the marker around within Münster to select a location. Then click a button below to select your mode of transportation, your direction map will be created. It might take some time to process, please be patient.<br/>';
+
+          // car button
+          var btnCar = document.createElement('button');
+          btnCar.value = 'car'
+          btnCar.innerHTML = 'Travel by car'
+          this._div.appendChild(btnCar);
+
+          // bike button
+          var btnBike = document.createElement('button');
+          btnBike.value = 'bike'
+          btnBike.innerHTML = 'Travel by bicycle'
+          this._div.appendChild(btnBike);
+
+          // result image with a link to enlarged version
+          var aResult = document.createElement('a');
+          var imgResult = document.createElement('img');
+          aResult.id = 'resultLink';
+          aResult.innerHTML = '<br/><br/>Click here to open an enlarged version';
+          aResult.appendChild(imgResult);
+          aResult.style.display = 'none';
+          imgResult.id = 'result';
+          this._div.appendChild(aResult);
+
+          // 'please wait' text that gets hidden/shown during request
+          var pleasewait = document.createElement('span');
+          pleasewait.id = 'pleaseWait';
+          pleasewait.innerHTML = '<br/>Please wait...'
+          pleasewait.style.display = 'none';
+          this._div.appendChild(pleasewait);
+
+          // prevent the marker from being moved when clicking on a button or inside the info box
+          L.DomEvent.disableClickPropagation(this._div);
+          L.DomEvent.disableClickPropagation(btnCar);
+          L.DomEvent.disableClickPropagation(btnBike);
+
+          $(btnCar).on('click', function(){
+            sendReq($(this).val());
+          });
+          
+          $(btnBike).on('click', function(){
+            sendReq($(this).val());
+          });
+
+          return this._div;
+      };
+
+      function deactivateForm(){
+        $('button[value=car]').attr('disabled', 'disabled');
+        $('button[value=bike]').attr('disabled', 'disabled');
+        $('#pleaseWait').show();
+      }
+
+      function activateForm(){
+        $('button[value=car]').attr('disabled', false);
+        $('button[value=bike]').attr('disabled', false);
+        $('#pleaseWait').hide();
+      }
+
+      function sendReq(mode) {
+        deactivateForm();
+
+        var coords = marker.getLatLng();
+        var opts = {
+          "lat": coords.lat,
+          "lon": coords.lng,
+          "mode": mode
+        }
+        console.log(opts)
+
+        // send ajax request and put the result in the info box
+        var xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function(){
+            if (this.readyState == 4 && this.status == 200){
+                console.log(typeof this.response);
+                var url = window.URL || window.webkitURL;
+                $('#resultLink').attr('href', url.createObjectURL(this.response));
+                $('#result').attr('src', url.createObjectURL(this.response));
+                $('#resultLink').show();
+                activateForm();
+            }
+        }
+        var requestUrl = '/map?lat=' +opts.lat+ '&lon=' +opts.lon+ '&mode=' + opts.mode;
+        xhr.open('GET', requestUrl);
+        xhr.responseType = 'blob';
+        xhr.send();
+      }
+
+      info.addTo(map);
+    </script>
+  </body>
+
+</html>
