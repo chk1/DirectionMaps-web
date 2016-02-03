@@ -5,9 +5,9 @@ var crypto = require('crypto');
 var fs = require('fs');
 
 // folder where DirectionMaps-Backend, dirmaps-web and DirectionMaps-Rendering repos are located
-var datahome = "/tmp/dirmapsdata";
+var datahome = "/home/c/tmp/dirmapsdata";
 var dmalgdir = "/home/c/code/DirectionMaps-Backend/dist";
-var renderdir = "/home/c/code/pythonmapnik";
+var renderdir = "/home/c/code/DirectionMaps-Rendering";
 
 function log(msg) {
 	var thetime = new Date().toISOString();
