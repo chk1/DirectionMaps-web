@@ -92,6 +92,7 @@ var runRender = function(options, cb){
 
 
 app.use('/', express.static('./leaflet'));
+app.use('/out', express.static(datahome+'/out'));
 
 var server = app.listen(3000, function () {
 	var host = server.address().address;

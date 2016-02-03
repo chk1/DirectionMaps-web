@@ -12,18 +12,44 @@ If done correctly, you should be able to open `http://localhost:3000/` and see a
 
 ### Docker file usage
 
-Build:
+Probably the easiest way to run this whole project is using the Dockerfile. Put your database credentials into `config.xml` first (example file provided).
 
-`sudo docker build -t dirmaps .`
+Build using `docker build`:
+
+```
+sudo docker build -t dirmaps .
+```
+
+If you are using a proxy you will need to add some `--build-arg`s:
+
+```
+docker build --build-arg https_proxy=$https_proxy --build-arg HTTPS_PROXY=$HTTPS_PROXY --build-arg http_proxy=$http_proxy --build-arg HTTP_PROXY=$HTTP_PROXY -t dirmaps .
+```
 
 Run:
 
-`sudo docker run --name=directionmaps -p 3000:3000 -i -t dirmaps`
+```
+sudo docker run --name=directionmaps -p 3000:3000 -i -t dirmaps
+```
 
 Stop:
 
-`sudo docker stop directionmaps`
+```
+sudo docker stop directionmaps
+```
 
 Remove:
 
-`sudo docker rm directionmaps`
+```
+sudo docker rm directionmaps
+```
+
+#### Notice about openjdk 8 and Docker 1.9.1
+
+There is [a bug](https://github.com/docker/docker/issues/18180) that will prevent Docker from running the necessary step `ca-certificates-java.postinst configure`. To fix this you can to update the hosts's kernel, in Ubuntu you will need to add a PPA:
+
+```
+sudo add-apt-repository ppa:chiluk/1533043
+sudo apt-get update
+sudo apt-get upgrade
+```

@@ -17,6 +17,7 @@ RUN apt-get update
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y libmapnik libmapnik-dev mapnik-utils python-mapnik
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y mapnik-input-plugin-ogr
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y openjdk-8-jre-headless
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y python-psycopg2
 RUN /var/lib/dpkg/info/ca-certificates-java.postinst configure
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y git nodejs
 
@@ -24,10 +25,10 @@ ADD . /data/DirectionMaps-web
 WORKDIR /data
 RUN git clone --depth 1 https://github.com/chk1/DirectionMaps-Rendering
 RUN git clone --depth 1 https://github.com/mrunde/DirectionMaps-Backend
+ADD config.xml /data/DirectionMaps-Rendering/config.xml
 RUN mkdir -p /data/dirmapsdata/src/res
+RUN mkdir /data/dirmapsdata/out
 RUN cp /data/DirectionMaps-Backend/src/res/landmarks.xml /data/dirmapsdata/src/res/landmarks.xml 
-
-# RUN python from-geojson.py
 
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
