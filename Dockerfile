@@ -20,9 +20,19 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y openjdk-8-jre-headless
 RUN /var/lib/dpkg/info/ca-certificates-java.postinst configure
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y git nodejs
 
+ADD . /data/DirectionMaps-web
 WORKDIR /data
-RUN git clone https://github.com/chk1/DirectionMaps-Rendering
-RUN git clone https://github.com/mrunde/DirectionMaps-Backend
+RUN git clone --depth 1 https://github.com/chk1/DirectionMaps-Rendering
+RUN git clone --depth 1 https://github.com/mrunde/DirectionMaps-Backend
+RUN mkdir -p /data/dirmapsdata/src/res
+RUN cp /data/DirectionMaps-Backend/src/res/landmarks.xml /data/dirmapsdata/src/res/landmarks.xml 
+
 # RUN python from-geojson.py
 
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+WORKDIR /data/DirectionMaps-web
+RUN npm install
+
+EXPOSE 3000
+CMD ["nodejs", "index.js"]
