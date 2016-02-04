@@ -1,39 +1,37 @@
-# Use phusion/baseimage as base image. To make your builds reproducible, make
-# sure you lock down to a specific version, not to `latest`!
-# See https://github.com/phusion/baseimage-docker/blob/master/Changelog.md for
-# a list of version numbers.
 FROM phusion/baseimage:0.9.18
+MAINTAINER Christoph Kisfeld <christoph.kisfeld@gmail.com>
 
 # Use baseimage-docker's init system.
 CMD ["/sbin/my_init"]
 
-# add repositories/ppa for Mapnik, OpenJDK 8, NodeJS 4
+# Add repositories/ppa for Mapnik, OpenJDK 8, NodeJS 4
 RUN DEBIAN_FRONTEND=noninteractive add-apt-repository ppa:mapnik/nightly-2.3
 RUN DEBIAN_FRONTEND=noninteractive add-apt-repository ppa:openjdk-r/ppa
 RUN curl -sL https://deb.nodesource.com/setup_4.x | bash -
 
 RUN apt-get update
 
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y libmapnik libmapnik-dev mapnik-utils python-mapnik
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y mapnik-input-plugin-ogr
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y openjdk-8-jre-headless
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y python-psycopg2
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends libmapnik libmapnik-dev mapnik-utils python-mapnik mapnik-input-plugin-ogr openjdk-8-jre-headless python-psycopg2 git nodejs
 RUN /var/lib/dpkg/info/ca-certificates-java.postinst configure
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y git nodejs
 
-ADD . /data/DirectionMaps-web
+# Download and copy necessary files into place
+COPY . /data/DirectionMaps-web
 WORKDIR /data
 RUN git clone --depth 1 https://github.com/chk1/DirectionMaps-Rendering
 RUN git clone --depth 1 https://github.com/mrunde/DirectionMaps-Backend
-ADD config.xml /data/DirectionMaps-Rendering/config.xml
-RUN mkdir -p /data/dirmapsdata/src/res
-RUN mkdir /data/dirmapsdata/out
+COPY config.xml /data/DirectionMaps-Rendering/config.xml
+RUN mkdir -p /data/dirmapsdata/src/res /data/dirmapsdata/out
 RUN cp /data/DirectionMaps-Backend/src/res/landmarks.xml /data/dirmapsdata/src/res/landmarks.xml 
 
+# Clean apt-get cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
+# Switch workdir for running environment
 WORKDIR /data/DirectionMaps-web
 RUN npm install
 
+# Set environment variables, used in index.js for locating the other projects
+ENV DIRMAPS_DATAHOME="/data/dirmapsdata" DIRMAPS_DMALGDIR="/data/DirectionMaps-Backend/dist" DIRMAPS_RENDERDIR="/data/DirectionMaps-Rendering"
+
 EXPOSE 3000
-CMD ["nodejs", "index.js"]
+ENTRYPOINT ["nodejs", "index.js"]
