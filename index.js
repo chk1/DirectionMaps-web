@@ -60,7 +60,7 @@ app.get('/map', function (req, res) {
 			var a = runAlgos(options, function(){
 				// return image blob if not otherwise specified
 				if(options.out === 'json') {
-					res.send( JSON.stringify({"filename":options.hash}) );
+					res.send( JSON.stringify({"filename":"/out/"+options.hash+".png"}) );
 				} else {
 					var img = fs.readFileSync(datahome+'/out/'+options.hash+'.png');
 					res.writeHead(200, {'Content-Type': 'image/png' });

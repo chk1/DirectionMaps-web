@@ -30,6 +30,10 @@
       .info img {
         width: 350px;
       }
+      #description {
+        clear: both;
+        border: none;
+      }
     </style>
   </head>
 
@@ -53,9 +57,22 @@
       }).addTo(map);
 
       // allow the marker to be dragged around and update its coordinates
-      map.on('click dragend', function(evt){
+      marker.on('dragend', function(evt){
+        reversegeocode();
+      });
+      map.on('click', function(evt){
         marker.setLatLng(evt.latlng);
+        reversegeocode();
       })
+
+      function reversegeocode(){
+        var latlng = marker.getLatLng();
+        $.get("http://nominatim.openstreetmap.org/reverse?format=json&lat="+latlng.lat+"&lon="+latlng.lng+"&zoom=18&addressdetails=1&namedetails=1", function(data){
+          console.log(data);
+          var response = data;
+          $('#description').attr("value", response.namedetails.name)
+        });
+      }
 
       // info window with buttons that start the rendering process
       var info = L.control();
@@ -75,6 +92,19 @@
           btnBike.value = 'bike'
           btnBike.innerHTML = 'Travel by bicycle'
           this._div.appendChild(btnBike);
+          
+          
+          var reversegeocoder = document.createElement('input');
+          reversegeocoder.type = "text";
+          reversegeocoder.id = "description";
+          this._div.appendChild(reversegeocoder);
+
+          // 'please wait' text that gets hidden/shown during request
+          var pleasewait = document.createElement('span');
+          pleasewait.id = 'pleaseWait';
+          pleasewait.innerHTML = '<br/>Please wait...'
+          pleasewait.style.display = 'none';
+          this._div.appendChild(pleasewait);
 
           // result image with a link to enlarged version
           var aResult = document.createElement('a');
@@ -85,13 +115,6 @@
           aResult.style.display = 'none';
           imgResult.id = 'result';
           this._div.appendChild(aResult);
-
-          // 'please wait' text that gets hidden/shown during request
-          var pleasewait = document.createElement('span');
-          pleasewait.id = 'pleaseWait';
-          pleasewait.innerHTML = '<br/>Please wait...'
-          pleasewait.style.display = 'none';
-          this._div.appendChild(pleasewait);
 
           // prevent the marker from being moved when clicking on a button or inside the info box
           L.DomEvent.disableClickPropagation(this._div);
@@ -128,11 +151,23 @@
         var opts = {
           "lat": coords.lat,
           "lon": coords.lng,
-          "mode": mode
+          "mode": mode,
+          "name": $("#description").val()
         }
         console.log(opts)
 
         // send ajax request and put the result in the info box
+        var requestUrl = '/map?lat=' +opts.lat+ '&lon=' +opts.lon+ '&mode=' + opts.mode + '&output=json&name='+opts.name;
+        $.get(requestUrl, function(data){
+          console.log(data);
+          var response = JSON.parse(data);
+          $('#resultLink').attr('href', response.filename);
+          $('#result').attr('src', response.filename);
+          $('#resultLink').show();
+          activateForm();
+        });
+        /*
+        // how to use blobs in your html
         var xhr = new XMLHttpRequest();
         xhr.onreadystatechange = function(){
             if (this.readyState == 4 && this.status == 200){
@@ -144,10 +179,10 @@
                 activateForm();
             }
         }
-        var requestUrl = '/map?lat=' +opts.lat+ '&lon=' +opts.lon+ '&mode=' + opts.mode;
         xhr.open('GET', requestUrl);
         xhr.responseType = 'blob';
         xhr.send();
+        */
       }
 
       info.addTo(map);
