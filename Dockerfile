@@ -5,8 +5,9 @@ MAINTAINER Christoph Kisfeld <christoph.kisfeld@gmail.com>
 CMD ["/sbin/my_init"]
 
 # Add repositories/ppa for Mapnik, OpenJDK 8, NodeJS 4
-RUN DEBIAN_FRONTEND=noninteractive add-apt-repository ppa:mapnik/nightly-2.3
-RUN DEBIAN_FRONTEND=noninteractive add-apt-repository ppa:openjdk-r/ppa
+RUN DEBIAN_FRONTEND=noninteractive \
+	add-apt-repository ppa:mapnik/nightly-2.3 && \
+	add-apt-repository ppa:openjdk-r/ppa
 RUN curl -sL https://deb.nodesource.com/setup_4.x | bash -
 
 RUN apt-get update
@@ -17,8 +18,8 @@ RUN /var/lib/dpkg/info/ca-certificates-java.postinst configure
 # Download and copy necessary files into place
 COPY . /data/DirectionMaps-web
 WORKDIR /data
-RUN git clone --depth 1 https://github.com/chk1/DirectionMaps-Rendering
-RUN git clone --depth 1 https://github.com/mrunde/DirectionMaps-Backend
+RUN git clone --depth 1 https://github.com/chk1/DirectionMaps-Rendering && \
+	git clone --depth 1 https://github.com/mrunde/DirectionMaps-Backend
 COPY config.xml /data/DirectionMaps-Rendering/config.xml
 RUN mkdir -p /data/dirmapsdata/src/res /data/dirmapsdata/out
 RUN cp /data/DirectionMaps-Backend/src/res/landmarks.xml /data/dirmapsdata/src/res/landmarks.xml 

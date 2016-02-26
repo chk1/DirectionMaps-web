@@ -123,7 +123,7 @@ var runRender = function(options, cb){
 /*
 	Serve Leaflet and output files statically
 */
-app.use('/', express.static('./leaflet'));
+app.use('/', express.static('./www'));
 app.use('/out', express.static(datahome+'/out'));
 
 var server = app.listen(3000, function () {
